@@ -496,7 +496,7 @@ module.exports = {
         env: 'apollo',
         schemaJsonFilepath: path.resolve(__dirname, './schema.json'),
         requiredFields: ['uuid'],
-	excludeTypes: ['FooType'],  // uuid is not required for FooType
+        excludeTypes: ['FooType'],  // uuid is not required for FooType
       },
     ],
   },
