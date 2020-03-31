@@ -18,6 +18,10 @@ function getFieldWasRequestedOnNode(node, field) {
   });
 }
 
+function isExcludedType(type, excludeTypes) {
+  return excludeTypes && excludeTypes.includes(type.name);
+}
+
 function fieldAvailableOnType(type, field) {
   if (!type) {
     return false;
@@ -30,14 +34,14 @@ function fieldAvailableOnType(type, field) {
 }
 
 export function RequiredFields(context, options) {
-  const { requiredFields } = options;
+  const { requiredFields, excludeTypes } = options;
 
   return {
     FragmentDefinition(node) {
       requiredFields.forEach(field => {
         const type = context.getType();
 
-        if (fieldAvailableOnType(type, field)) {
+        if (fieldAvailableOnType(type, field) && !isExcludedType(type, excludeTypes)) {
           const fieldWasRequested = getFieldWasRequestedOnNode(node, field);
           if (!fieldWasRequested) {
             context.reportError(
@@ -57,7 +61,7 @@ export function RequiredFields(context, options) {
       requiredFields.forEach(field => {
         const type = context.getType();
 
-        if (fieldAvailableOnType(type, field)) {
+        if (fieldAvailableOnType(type, field) && !isExcludedType(type, excludeTypes)) {
           // First, check the selection set on this inline fragment
           if (node.selectionSet && getFieldWasRequestedOnNode(node, field)) {
             return true;
@@ -117,7 +121,7 @@ export function RequiredFields(context, options) {
       }
 
       requiredFields.forEach(field => {
-        if (fieldAvailableOnType(def.type, field)) {
+        if (fieldAvailableOnType(def.type, field) && !isExcludedType(def.type, excludeTypes)) {
           const fieldWasRequested = getFieldWasRequestedOnNode(node, field);
           if (!fieldWasRequested) {
             context.reportError(

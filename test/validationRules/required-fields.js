@@ -19,7 +19,7 @@ const requiredFieldsTestCases = {
     "const x = gql`fragment Id on Node { id ... on NodeA { fieldA } }`",
     "const x = gql`query { nodes { id ... on NodeA { fieldA } } }`",
   ],
-  fail: [
+  failAlways: [
     {
       code: "const x = gql`query { stories { comments { text } } }`",
       errors: [
@@ -29,6 +29,28 @@ const requiredFieldsTestCases = {
         }
       ]
     },
+    {
+      code:
+        "const x = gql`query { greetingOrStory { ... on Greetings { id } ... on Story { comments { text } } } }`",
+      errors: [
+        {
+          message: `'id' field required on '... on Story'`,
+          type: "TaggedTemplateExpression"
+        }
+      ]
+    },
+    {
+      code:
+        "const x = gql`query { nodes { ... on NodeA { id fieldA } ... on NodeB { id fieldB }}}`",
+      errors: [
+        {
+          message: `'id' field required on 'nodes'`,
+          type: "TaggedTemplateExpression"
+        }
+      ]
+    },
+  ],
+  failIfNotExcluded: [
     {
       code: "const x = gql`query { greetings { hello } }`",
       errors: [
@@ -68,26 +90,6 @@ const requiredFieldsTestCases = {
     },
     {
       code:
-        "const x = gql`query { greetingOrStory { ... on Greetings { id } ... on Story { comments { text } } } }`",
-      errors: [
-        {
-          message: `'id' field required on '... on Story'`,
-          type: "TaggedTemplateExpression"
-        }
-      ]
-    },
-    {
-      code:
-        "const x = gql`query { nodes { ... on NodeA { id fieldA } ... on NodeB { id fieldB }}}`",
-      errors: [
-        {
-          message: `'id' field required on 'nodes'`,
-          type: "TaggedTemplateExpression"
-        }
-      ]
-    },
-    {
-      code:
         "const x = gql`fragment Name on GreetingOrStory { ... on Greetings { hello } }`",
       errors: [
         {
@@ -98,6 +100,8 @@ const requiredFieldsTestCases = {
     },
   ]
 };
+
+requiredFieldsTestCases.failAll = requiredFieldsTestCases.failAlways.concat(requiredFieldsTestCases.failIfNotExcluded);
 
 // Validate the required-fields rule with env specified
 let options = [
@@ -115,7 +119,7 @@ ruleTester.run("testing required-fields rule with env", rules["required-fields"]
     parserOptions,
     code
   })),
-  invalid: requiredFieldsTestCases.fail.map(({ code, errors }) => ({
+  invalid: requiredFieldsTestCases.failAll.map(({ code, errors }) => ({
     options,
     parserOptions,
     code,
@@ -137,7 +141,30 @@ ruleTester.run("testing required-fields rule without env", rules["required-field
     parserOptions,
     code
   })),
-  invalid: requiredFieldsTestCases.fail.map(({ code, errors }) => ({
+  invalid: requiredFieldsTestCases.failAll.map(({ code, errors }) => ({
+    options,
+    parserOptions,
+    code,
+    errors
+  }))
+});
+
+// Validate required-fields with excluded types
+options = [
+  {
+    schemaJson,
+    tagName: "gql",
+    requiredFields: ["id"],
+    excludeTypes: ["Greetings"]
+  }
+];
+ruleTester.run("testing required-fields rule with excluded types", rules["required-fields"], {
+  valid: requiredFieldsTestCases.pass.map(code => ({
+    options,
+    parserOptions,
+    code
+  })),
+  invalid: requiredFieldsTestCases.failAlways.map(({ code, errors }) => ({
     options,
     parserOptions,
     code,

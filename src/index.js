@@ -171,6 +171,12 @@ export const rules = {
               items: {
                 type: "string"
               }
+            },
+            excludeTypes: {
+              type: "array",
+              items: {
+                type: "string"
+              }
             }
           },
           required: ["requiredFields"],
@@ -183,7 +189,10 @@ export const rules = {
         parseOptions(
           {
             validators: ["RequiredFields"],
-            options: { requiredFields: optionGroup.requiredFields },
+            options: {
+              requiredFields: optionGroup.requiredFields,
+              excludeTypes: optionGroup.excludeTypes,
+            },
             ...optionGroup
           },
           context
