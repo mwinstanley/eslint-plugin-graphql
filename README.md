@@ -484,6 +484,28 @@ module.exports = {
 }
 ```
 
+The optional `excludeTypes` option can be used to exclude specific types by name from the validation.
+
+```js
+// In a file called .eslintrc.js
+module.exports = {
+  rules: {
+    'graphql/required-fields': [
+      'error',
+      {
+        env: 'apollo',
+        schemaJsonFilepath: path.resolve(__dirname, './schema.json'),
+        requiredFields: ['uuid'],
+	excludeTypes: ['FooType'],  // uuid is not required for FooType
+      },
+    ],
+  },
+  plugins: [
+    'graphql'
+  ]
+}
+```
+
 ### Capitalization of a first letter of a Type name
 
 This rule enforces that first letter of types is capitalized
